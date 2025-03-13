@@ -176,6 +176,15 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 println("Config ready: $config")
 
                 println("Attempting to set tunnel state to UP...")
+                if (backend == null) {
+                    throw Exception("Backend is null")
+                }
+                if (tunnel == null) {
+                    throw Exception("Tunnel is null")
+                }
+                if (this.config == null) {
+                    throw Exception("Config is null")
+                }
                 backend?.setState(tunnel!!, Tunnel.State.UP, this.config!!)
                 println("Successfully set tunnel state to UP")
                 promise.resolve(null)
@@ -183,6 +192,9 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 println("Failed to set tunnel state: ${e.message}")
                 println("Exception stack trace:")
                 e.printStackTrace()
+                println("Backend state: ${backend != null}")
+                println("Tunnel state: ${tunnel != null}")
+                println("Config state: ${this.config != null}")
                 throw Exception("Failed to set tunnel state: ${e.message}")
             }
         } catch (e: Exception) {
