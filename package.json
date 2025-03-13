@@ -1,6 +1,6 @@
 {
   "name": "react-native-wireguard-vpn",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "React Native WireGuard VPN package for iOS and Android",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
