@@ -7,6 +7,7 @@ declare module 'react-native-wireguard-vpn' {
     allowedIPs: string[];
     dns?: string[];
     mtu?: number;
+    presharedKey?: string;
   }
 
   export interface WireGuardStatus {

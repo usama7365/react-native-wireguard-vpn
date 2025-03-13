@@ -23,7 +23,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             backend = GoBackend(reactApplicationContext)
             promise.resolve(null)
         } catch (e: Exception) {
-            promise.reject("INIT_ERROR", e.message)
+            promise.reject("INIT_ERROR", "Failed to initialize WireGuard: ${e.message}")
         }
     }
 
@@ -31,47 +31,94 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
     fun connect(config: ReadableMap, promise: Promise) {
         try {
             val interfaceBuilder = Interface.Builder()
-            config.getString("privateKey")?.let { privateKey ->
+            
+            // Parse private key
+            val privateKey = config.getString("privateKey") ?: throw Exception("Private key is required")
+            try {
                 interfaceBuilder.parsePrivateKey(privateKey)
-            } ?: throw Exception("Private key is required")
+            } catch (e: ParseException) {
+                throw Exception("Invalid private key format: ${e.message}")
+            }
             
             // Parse allowed IPs
-            val allowedIPs = config.getArray("allowedIPs")
-            allowedIPs?.toArrayList()?.forEach { ip ->
-                (ip as? String)?.let { ipString ->
-                    interfaceBuilder.addAddress(InetNetwork.parse(ipString))
+            val allowedIPs = config.getArray("allowedIPs")?.toArrayList()
+                ?: throw Exception("allowedIPs array is required")
+            
+            try {
+                allowedIPs.forEach { ip ->
+                    (ip as? String)?.let { ipString ->
+                        interfaceBuilder.addAddress(InetNetwork.parse(ipString))
+                    } ?: throw Exception("Invalid allowedIP format")
                 }
+            } catch (e: ParseException) {
+                throw Exception("Invalid allowedIP format: ${e.message}")
             }
 
             // Parse DNS servers
-            val dnsServers = config.getArray("dns")
-            dnsServers?.toArrayList()?.forEach { dns ->
-                (dns as? String)?.let { dnsString ->
-                    interfaceBuilder.addDnsServer(InetAddress.getByName(dnsString))
+            if (config.hasKey("dns")) {
+                val dnsServers = config.getArray("dns")?.toArrayList()
+                try {
+                    dnsServers?.forEach { dns ->
+                        (dns as? String)?.let { dnsString ->
+                            interfaceBuilder.addDnsServer(InetAddress.getByName(dnsString))
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Invalid DNS server format: ${e.message}")
                 }
             }
 
             // Set MTU if provided
             if (config.hasKey("mtu")) {
-                interfaceBuilder.setMtu(config.getInt("mtu"))
+                val mtu = config.getInt("mtu")
+                if (mtu < 1280 || mtu > 65535) {
+                    throw Exception("MTU must be between 1280 and 65535")
+                }
+                interfaceBuilder.setMtu(mtu)
             }
 
             val peerBuilder = Peer.Builder()
-            config.getString("publicKey")?.let { publicKey ->
+            
+            // Parse public key
+            val publicKey = config.getString("publicKey") ?: throw Exception("Public key is required")
+            try {
                 peerBuilder.parsePublicKey(publicKey)
-            } ?: throw Exception("Public key is required")
+            } catch (e: ParseException) {
+                throw Exception("Invalid public key format: ${e.message}")
+            }
+            
+            // Parse preshared key if provided
+            if (config.hasKey("presharedKey")) {
+                val presharedKey = config.getString("presharedKey")
+                try {
+                    presharedKey?.let { peerBuilder.parsePresharedKey(it) }
+                } catch (e: ParseException) {
+                    throw Exception("Invalid preshared key format: ${e.message}")
+                }
+            }
             
             // Parse endpoint
             val serverAddress = config.getString("serverAddress") ?: throw Exception("Server address is required")
             val serverPort = config.getInt("serverPort")
+            if (serverPort < 1 || serverPort > 65535) {
+                throw Exception("Port must be between 1 and 65535")
+            }
             val endpoint = "$serverAddress:$serverPort"
-            peerBuilder.parseEndpoint(endpoint)
+            try {
+                peerBuilder.parseEndpoint(endpoint)
+            } catch (e: ParseException) {
+                throw Exception("Invalid endpoint format: ${e.message}")
+            }
 
             // Add allowed IPs to peer
-            allowedIPs?.toArrayList()?.forEach { ip ->
-                (ip as? String)?.let { ipString ->
-                    peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
+            try {
+                allowedIPs.forEach { ip ->
+                    (ip as? String)?.let { ipString ->
+                        peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
+                    }
                 }
+            } catch (e: ParseException) {
+                throw Exception("Invalid peer allowedIP format: ${e.message}")
             }
 
             val configBuilder = Config.Builder()
@@ -87,7 +134,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             backend?.setState(tunnel!!, Tunnel.State.UP, this.config!!)
             promise.resolve(null)
         } catch (e: Exception) {
-            promise.reject("CONNECT_ERROR", e.message)
+            promise.reject("CONNECT_ERROR", "Failed to connect: ${e.message}")
         }
     }
 
@@ -101,7 +148,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 promise.reject("DISCONNECT_ERROR", "Tunnel not initialized")
             }
         } catch (e: Exception) {
-            promise.reject("DISCONNECT_ERROR", e.message)
+            promise.reject("DISCONNECT_ERROR", "Failed to disconnect: ${e.message}")
         }
     }
 
@@ -120,7 +167,12 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             }
             promise.resolve(status)
         } catch (e: Exception) {
-            promise.reject("STATUS_ERROR", e.message)
+            val status = Arguments.createMap().apply {
+                putBoolean("isConnected", false)
+                putString("tunnelState", "ERROR")
+                putString("error", e.message)
+            }
+            promise.resolve(status)
         }
     }
 
