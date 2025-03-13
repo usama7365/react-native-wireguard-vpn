@@ -32,12 +32,19 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
     fun connect(config: ReadableMap, promise: Promise) {
         try {
             println("Starting VPN connection process...")
+            println("Received config: $config")
+            
+            if (backend == null) {
+                println("Backend is null, initializing...")
+                backend = GoBackend(reactApplicationContext)
+            }
+            
             val interfaceBuilder = Interface.Builder()
             
             // Parse private key
             val privateKey = config.getString("privateKey") ?: throw Exception("Private key is required")
             try {
-                println("Parsing private key...")
+                println("Parsing private key: $privateKey")
                 interfaceBuilder.parsePrivateKey(privateKey)
                 println("Private key parsed successfully")
             } catch (e: ParseException) {
@@ -50,7 +57,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 ?: throw Exception("allowedIPs array is required")
             
             try {
-                println("Parsing allowed IPs...")
+                println("Parsing allowed IPs: $allowedIPs")
                 allowedIPs.forEach { ip ->
                     (ip as? String)?.let { ipString ->
                         interfaceBuilder.addAddress(InetNetwork.parse(ipString))
@@ -66,7 +73,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("dns")) {
                 val dnsServers = config.getArray("dns")?.toArrayList()
                 try {
-                    println("Parsing DNS servers...")
+                    println("Parsing DNS servers: $dnsServers")
                     dnsServers?.forEach { dns ->
                         (dns as? String)?.let { dnsString ->
                             interfaceBuilder.addDnsServer(InetAddress.getByName(dnsString))
@@ -93,7 +100,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             // Parse public key
             val publicKey = config.getString("publicKey") ?: throw Exception("Public key is required")
             try {
-                println("Parsing public key...")
+                println("Parsing public key: $publicKey")
                 peerBuilder.parsePublicKey(publicKey)
                 println("Public key parsed successfully")
             } catch (e: ParseException) {
@@ -105,7 +112,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("presharedKey")) {
                 val presharedKey = config.getString("presharedKey")
                 try {
-                    println("Parsing preshared key...")
+                    println("Parsing preshared key: $presharedKey")
                     presharedKey?.let { keyString ->
                         val key = Key.fromBase64(keyString)
                         peerBuilder.setPreSharedKey(key)
@@ -125,7 +132,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             }
             val endpoint = "$serverAddress:$serverPort"
             try {
-                println("Parsing endpoint...")
+                println("Parsing endpoint: $endpoint")
                 peerBuilder.parseEndpoint(endpoint)
                 println("Endpoint parsed successfully")
             } catch (e: ParseException) {
@@ -135,7 +142,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
 
             // Add allowed IPs to peer
             try {
-                println("Adding allowed IPs to peer...")
+                println("Adding allowed IPs to peer: $allowedIPs")
                 allowedIPs.forEach { ip ->
                     (ip as? String)?.let { ipString ->
                         peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
@@ -164,10 +171,6 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
 
             try {
                 println("Checking backend and tunnel state...")
-                if (backend == null) {
-                    println("Backend is null, initializing...")
-                    backend = GoBackend(reactApplicationContext)
-                }
                 println("Backend initialized: $backend")
                 println("Tunnel initialized: $tunnel")
                 println("Config ready: $config")
