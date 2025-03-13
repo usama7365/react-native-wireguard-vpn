@@ -31,13 +31,17 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
     @ReactMethod
     fun connect(config: ReadableMap, promise: Promise) {
         try {
+            println("Starting VPN connection process...")
             val interfaceBuilder = Interface.Builder()
             
             // Parse private key
             val privateKey = config.getString("privateKey") ?: throw Exception("Private key is required")
             try {
+                println("Parsing private key...")
                 interfaceBuilder.parsePrivateKey(privateKey)
+                println("Private key parsed successfully")
             } catch (e: ParseException) {
+                println("Failed to parse private key: ${e.message}")
                 throw Exception("Invalid private key format: ${e.message}, Key: $privateKey")
             }
             
@@ -46,12 +50,15 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 ?: throw Exception("allowedIPs array is required")
             
             try {
+                println("Parsing allowed IPs...")
                 allowedIPs.forEach { ip ->
                     (ip as? String)?.let { ipString ->
                         interfaceBuilder.addAddress(InetNetwork.parse(ipString))
                     } ?: throw Exception("Invalid allowedIP format")
                 }
+                println("Allowed IPs parsed successfully")
             } catch (e: ParseException) {
+                println("Failed to parse allowed IPs: ${e.message}")
                 throw Exception("Invalid allowedIP format: ${e.message}, IPs: $allowedIPs")
             }
 
@@ -59,12 +66,15 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("dns")) {
                 val dnsServers = config.getArray("dns")?.toArrayList()
                 try {
+                    println("Parsing DNS servers...")
                     dnsServers?.forEach { dns ->
                         (dns as? String)?.let { dnsString ->
                             interfaceBuilder.addDnsServer(InetAddress.getByName(dnsString))
                         }
                     }
+                    println("DNS servers parsed successfully")
                 } catch (e: Exception) {
+                    println("Failed to parse DNS servers: ${e.message}")
                     throw Exception("Invalid DNS server format: ${e.message}, DNS: $dnsServers")
                 }
             }
@@ -83,8 +93,11 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             // Parse public key
             val publicKey = config.getString("publicKey") ?: throw Exception("Public key is required")
             try {
+                println("Parsing public key...")
                 peerBuilder.parsePublicKey(publicKey)
+                println("Public key parsed successfully")
             } catch (e: ParseException) {
+                println("Failed to parse public key: ${e.message}")
                 throw Exception("Invalid public key format: ${e.message}, Key: $publicKey")
             }
             
@@ -92,11 +105,14 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("presharedKey")) {
                 val presharedKey = config.getString("presharedKey")
                 try {
+                    println("Parsing preshared key...")
                     presharedKey?.let { keyString ->
                         val key = Key.fromBase64(keyString)
                         peerBuilder.setPreSharedKey(key)
                     }
+                    println("Preshared key parsed successfully")
                 } catch (e: Exception) {
+                    println("Failed to parse preshared key: ${e.message}")
                     throw Exception("Invalid preshared key format: ${e.message}, Key: $presharedKey")
                 }
             }
@@ -109,42 +125,67 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             }
             val endpoint = "$serverAddress:$serverPort"
             try {
+                println("Parsing endpoint...")
                 peerBuilder.parseEndpoint(endpoint)
+                println("Endpoint parsed successfully")
             } catch (e: ParseException) {
+                println("Failed to parse endpoint: ${e.message}")
                 throw Exception("Invalid endpoint format: ${e.message}, Endpoint: $endpoint")
             }
 
             // Add allowed IPs to peer
             try {
+                println("Adding allowed IPs to peer...")
                 allowedIPs.forEach { ip ->
                     (ip as? String)?.let { ipString ->
                         peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
                     }
                 }
+                println("Allowed IPs added to peer successfully")
             } catch (e: ParseException) {
+                println("Failed to add allowed IPs to peer: ${e.message}")
                 throw Exception("Invalid peer allowedIP format: ${e.message}, IPs: $allowedIPs")
             }
 
+            println("Building WireGuard config...")
             val configBuilder = Config.Builder()
             configBuilder.setInterface(interfaceBuilder.build())
             configBuilder.addPeer(peerBuilder.build())
 
             this.config = configBuilder.build()
+            println("WireGuard config built successfully")
+
             this.tunnel = object : Tunnel {
                 override fun getName(): String = "WireGuardTunnel"
                 override fun onStateChange(newState: Tunnel.State) {
-                    // Log state changes
                     println("WireGuard tunnel state changed to: $newState")
                 }
             }
 
             try {
+                println("Checking backend and tunnel state...")
+                if (backend == null) {
+                    println("Backend is null, initializing...")
+                    backend = GoBackend(reactApplicationContext)
+                }
+                println("Backend initialized: $backend")
+                println("Tunnel initialized: $tunnel")
+                println("Config ready: $config")
+
+                println("Attempting to set tunnel state to UP...")
                 backend?.setState(tunnel!!, Tunnel.State.UP, this.config!!)
+                println("Successfully set tunnel state to UP")
                 promise.resolve(null)
             } catch (e: Exception) {
+                println("Failed to set tunnel state: ${e.message}")
+                println("Exception stack trace:")
+                e.printStackTrace()
                 throw Exception("Failed to set tunnel state: ${e.message}")
             }
         } catch (e: Exception) {
+            println("Connection failed with error: ${e.message}")
+            println("Exception stack trace:")
+            e.printStackTrace()
             promise.reject("CONNECT_ERROR", "Failed to connect: ${e.message}")
         }
     }
