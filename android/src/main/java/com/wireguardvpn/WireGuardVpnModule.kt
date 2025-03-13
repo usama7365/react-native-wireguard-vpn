@@ -9,6 +9,7 @@ import com.wireguard.android.backend.Tunnel
 import java.net.InetAddress
 import com.wireguard.config.InetNetwork
 import com.wireguard.config.ParseException
+import com.wireguard.crypto.Key
 
 class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var backend: GoBackend? = null
@@ -91,7 +92,9 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("presharedKey")) {
                 val presharedKey = config.getString("presharedKey")
                 try {
-                    presharedKey?.let { peerBuilder.parsePresharedKey(it) }
+                    presharedKey?.let {
+                        peerBuilder.parsePresharedKey(it)
+                    }
                 } catch (e: ParseException) {
                     throw Exception("Invalid preshared key format: ${e.message}")
                 }
