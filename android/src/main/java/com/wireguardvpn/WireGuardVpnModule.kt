@@ -38,7 +38,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             try {
                 interfaceBuilder.parsePrivateKey(privateKey)
             } catch (e: ParseException) {
-                throw Exception("Invalid private key format: ${e.message}")
+                throw Exception("Invalid private key format: ${e.message}, Key: $privateKey")
             }
             
             // Parse allowed IPs
@@ -52,7 +52,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                     } ?: throw Exception("Invalid allowedIP format")
                 }
             } catch (e: ParseException) {
-                throw Exception("Invalid allowedIP format: ${e.message}")
+                throw Exception("Invalid allowedIP format: ${e.message}, IPs: $allowedIPs")
             }
 
             // Parse DNS servers
@@ -65,7 +65,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                         }
                     }
                 } catch (e: Exception) {
-                    throw Exception("Invalid DNS server format: ${e.message}")
+                    throw Exception("Invalid DNS server format: ${e.message}, DNS: $dnsServers")
                 }
             }
 
@@ -73,7 +73,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             if (config.hasKey("mtu")) {
                 val mtu = config.getInt("mtu")
                 if (mtu < 1280 || mtu > 65535) {
-                    throw Exception("MTU must be between 1280 and 65535")
+                    throw Exception("MTU must be between 1280 and 65535, got: $mtu")
                 }
                 interfaceBuilder.setMtu(mtu)
             }
@@ -85,19 +85,19 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             try {
                 peerBuilder.parsePublicKey(publicKey)
             } catch (e: ParseException) {
-                throw Exception("Invalid public key format: ${e.message}")
+                throw Exception("Invalid public key format: ${e.message}, Key: $publicKey")
             }
             
             // Parse preshared key if provided
             if (config.hasKey("presharedKey")) {
                 val presharedKey = config.getString("presharedKey")
                 try {
-                    presharedKey?.let {
-                        val key = Key.fromBase64(it)
-                        peerBuilder.setPresharedKey(key)
+                    presharedKey?.let { keyString ->
+                        val key = Key.fromBase64(keyString)
+                        peerBuilder.setPreSharedKey(key)
                     }
                 } catch (e: Exception) {
-                    throw Exception("Invalid preshared key format: ${e.message}")
+                    throw Exception("Invalid preshared key format: ${e.message}, Key: $presharedKey")
                 }
             }
             
@@ -105,13 +105,13 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             val serverAddress = config.getString("serverAddress") ?: throw Exception("Server address is required")
             val serverPort = config.getInt("serverPort")
             if (serverPort < 1 || serverPort > 65535) {
-                throw Exception("Port must be between 1 and 65535")
+                throw Exception("Port must be between 1 and 65535, got: $serverPort")
             }
             val endpoint = "$serverAddress:$serverPort"
             try {
                 peerBuilder.parseEndpoint(endpoint)
             } catch (e: ParseException) {
-                throw Exception("Invalid endpoint format: ${e.message}")
+                throw Exception("Invalid endpoint format: ${e.message}, Endpoint: $endpoint")
             }
 
             // Add allowed IPs to peer
@@ -122,7 +122,7 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                     }
                 }
             } catch (e: ParseException) {
-                throw Exception("Invalid peer allowedIP format: ${e.message}")
+                throw Exception("Invalid peer allowedIP format: ${e.message}, IPs: $allowedIPs")
             }
 
             val configBuilder = Config.Builder()
@@ -132,11 +132,18 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
             this.config = configBuilder.build()
             this.tunnel = object : Tunnel {
                 override fun getName(): String = "WireGuardTunnel"
-                override fun onStateChange(newState: Tunnel.State) {}
+                override fun onStateChange(newState: Tunnel.State) {
+                    // Log state changes
+                    println("WireGuard tunnel state changed to: $newState")
+                }
             }
 
-            backend?.setState(tunnel!!, Tunnel.State.UP, this.config!!)
-            promise.resolve(null)
+            try {
+                backend?.setState(tunnel!!, Tunnel.State.UP, this.config!!)
+                promise.resolve(null)
+            } catch (e: Exception) {
+                throw Exception("Failed to set tunnel state: ${e.message}")
+            }
         } catch (e: Exception) {
             promise.reject("CONNECT_ERROR", "Failed to connect: ${e.message}")
         }
