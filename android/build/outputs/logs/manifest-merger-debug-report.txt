@@ -1,0 +1,56 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:2:1-29:12
+INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:2:1-29:12
+	package
+		INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml
+	xmlns:tools
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:3:5-51
+	xmlns:android
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:5:5-67
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:6:5-77
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:6:22-74
+uses-permission#android.permission.BIND_VPN_SERVICE
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:7:5-75
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:7:22-72
+application
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:9:5-28:19
+	android:networkSecurityConfig
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:9:18-78
+service#com.wireguardvpn.WireGuardVpnService
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:10:9-17:19
+	android:exported
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:13:13-36
+	android:permission
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:12:13-69
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:11:13-48
+intent-filter#action:name:android.net.VpnService
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:14:13-16:29
+action#android.net.VpnService
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:15:17-65
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:15:25-62
+service#com.wireguard.android.backend.GoBackend$VpnService
+ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:20:9-27:19
+	android:exported
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:23:13-36
+	android:permission
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:22:13-69
+	android:name
+		ADDED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml:21:13-78
+uses-sdk
+INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml
+INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/mac/Desktop/wire-guard-package/TestWireGuardApp/node_modules/react-native-wireguard-vpn/android/src/main/AndroidManifest.xml

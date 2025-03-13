@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "./lib",
+    "strict": true,
+    "jsx": "react-native",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": ["es6", "es2017"],
+    "baseUrl": ".",
+    "types": ["react-native", "node"],
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "android",
+    "ios",
+    "__tests__"
+  ]
+} 
