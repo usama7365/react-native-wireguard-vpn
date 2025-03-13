@@ -93,9 +93,10 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 val presharedKey = config.getString("presharedKey")
                 try {
                     presharedKey?.let {
-                        peerBuilder.parsePresharedKey(it)
+                        val key = Key.fromBase64(it)
+                        peerBuilder.setPresharedKey(key)
                     }
-                } catch (e: ParseException) {
+                } catch (e: Exception) {
                     throw Exception("Invalid preshared key format: ${e.message}")
                 }
             }
