@@ -195,19 +195,26 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 println("Successfully set tunnel state to UP")
                 promise.resolve(null)
             } catch (e: Exception) {
-                println("Failed to set tunnel state: ${e.message}")
-                println("Exception stack trace:")
+                val msg = e.message ?: e.toString()
+                val causeMsg = e.cause?.message
+                println("Failed to set tunnel state: $msg")
+                if (causeMsg != null) println("Cause: $causeMsg")
                 e.printStackTrace()
-                println("Backend state: ${backend != null}")
-                println("Tunnel state: ${tunnel != null}")
-                println("Config state: ${this.config != null}")
-                throw Exception("Failed to set tunnel state: ${e.message}")
+                throw Exception(if (causeMsg != null) "$msg: $causeMsg" else msg)
             }
         } catch (e: Exception) {
-            println("Connection failed with error: ${e.message}")
-            println("Exception stack trace:")
+            val msg = e.message ?: e.toString()
+            val causeMsg = e.cause?.message
+            val fullMsg = buildString {
+                append(msg)
+                if (causeMsg != null) append(" (cause: $causeMsg)")
+                if (msg.contains("Bad address", ignoreCase = true) || msg.contains("BackendException", ignoreCase = true)) {
+                    append(". Tip: ensure 'address' is a tunnel CIDR like 10.64.0.1/32, not 0.0.0.0/0; use allowedIPs only for routing.")
+                }
+            }
+            println("Connection failed: $fullMsg")
             e.printStackTrace()
-            promise.reject("CONNECT_ERROR", "Failed to connect: ${e.message}")
+            promise.reject("CONNECT_ERROR", fullMsg)
         }
     }
 

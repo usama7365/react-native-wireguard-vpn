@@ -160,10 +160,12 @@ interface WireGuardStatus {
 ### "The package 'react-native-wireguard-vpn' doesn't seem to be linked"
 Follow the [Linking checklist](#linking-checklist-if-you-see-doesnt-seem-to-be-linked) above. Ensure you have run `pod install`, rebuilt the app (not just reloaded), and are not using Expo Go.
 
-### "Failed to set tunnel state: Bad address" (Android)
-This usually happens when the **interface address** is wrong. The config needs:
-- **`address`** (optional): your tunnel IP in CIDR form, e.g. `"10.64.0.1/32"`. If your provider (e.g. Mullvad) gives an "Address" in the `[Interface]` section, use that. If omitted, the library uses `10.64.0.1/32`.
+### "Failed to set tunnel state: Bad address" / BackendException (Android)
+**BackendException** from `GoBackend.setState()` (or "Bad address") usually means the **interface address** is invalid. The config must use:
+- **`address`** (optional): your tunnel IP in CIDR form, e.g. `"10.64.0.1/32"`. If your provider gives an "Address" in the `[Interface]` section, use that. If omitted, the library uses `10.64.0.1/32`.
 - **`allowedIPs`**: only for *routing* (what traffic goes through the VPN), e.g. `["0.0.0.0/0", "::/0"]`. Use `::/0` for IPv6 default, not `::0/0`. Do **not** use `0.0.0.0/0` or `::/0` as the interface address.
+
+From v1.0.16+, the library uses a proper interface address by default and surfaces the backend cause in the error message when possible.
 
 ### Android
 - Ensure your app has the necessary permissions granted
