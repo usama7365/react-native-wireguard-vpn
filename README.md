@@ -40,12 +40,11 @@ cd ios && pod install && cd ..
 </array>
 ```
 
-3. Add Network Extension capability to your iOS project:
-   - Open your project in Xcode
-   - Select your target
-   - Go to "Signing & Capabilities"
-   - Click "+" and add "Network Extensions"
-   - Enable "Packet Tunnel" under Network Extensions
+3. Add a **Packet Tunnel** Network Extension to your iOS project:
+   - In Xcode: File → New → Target → **Network Extension** → **Packet Tunnel Provider**. Name it e.g. "WireGuardTunnel".
+   - Set the extension target’s **Bundle Identifier** to `com.wireguardvpn.tunnel` (or the same value your app uses when starting the tunnel). The library uses `com.wireguardvpn.tunnel` by default in the native code.
+   - In your **main app target**: Signing & Capabilities → "+" → add **Network Extensions** and enable **Packet Tunnel**.
+   - Use a real device for testing; VPN/Network Extension often does not work in the simulator.
 
 ### Android Setup
 
