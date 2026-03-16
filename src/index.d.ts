@@ -4,6 +4,8 @@ declare module 'react-native-wireguard-vpn' {
     publicKey: string;
     serverAddress: string;
     serverPort: number;
+    /** Interface address(es), e.g. "10.64.0.1/32". Optional; defaults to 10.64.0.1/32. Do not use 0.0.0.0/0 or ::/0 here. */
+    address?: string | string[];
     allowedIPs: string[];
     dns?: string[];
     mtu?: number;

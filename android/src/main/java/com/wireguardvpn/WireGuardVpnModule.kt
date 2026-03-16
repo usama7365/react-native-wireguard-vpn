@@ -52,22 +52,33 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 throw Exception("Invalid private key format: ${e.message}, Key: $privateKey")
             }
             
-            // Parse allowed IPs
+            // Interface address: client's VPN tunnel IP (e.g. 10.64.0.1/32). Do NOT use allowedIPs here
+            // or the Go backend can return "Bad address" (0.0.0.0/0 or ::/0 are invalid for interface).
+            val rawAddress = when {
+                config.hasKey("address") && config.getType("address") == ReadableType.Array ->
+                    config.getArray("address")?.toArrayList().orEmpty()
+                config.hasKey("address") && config.getString("address") != null ->
+                    listOf(config.getString("address")!!)
+                else -> listOf("10.64.0.1/32")
+            }
+            val interfaceAddresses = rawAddress.filterIsInstance<String>().map { it.trim() }.filter { it.isNotBlank() }
+                .ifEmpty { listOf("10.64.0.1/32") }
+            try {
+                interfaceAddresses.forEach { addr ->
+                    interfaceBuilder.addAddress(InetNetwork.parse(addr))
+                }
+            } catch (e: ParseException) {
+                throw Exception("Invalid interface address format: ${e.message}. Use CIDR like 10.64.0.1/32, not 0.0.0.0/0. Addresses: $interfaceAddresses")
+            }
+
+            // Peer allowed IPs: which traffic to route through VPN (e.g. 0.0.0.0/0, ::/0)
             val allowedIPs = config.getArray("allowedIPs")?.toArrayList()
                 ?: throw Exception("allowedIPs array is required")
-            
-            try {
-                println("Parsing allowed IPs: $allowedIPs")
-                allowedIPs.forEach { ip ->
-                    (ip as? String)?.let { ipString ->
-                        interfaceBuilder.addAddress(InetNetwork.parse(ipString))
-                    } ?: throw Exception("Invalid allowedIP format")
-                }
-                println("Allowed IPs parsed successfully")
-            } catch (e: ParseException) {
-                println("Failed to parse allowed IPs: ${e.message}")
-                throw Exception("Invalid allowedIP format: ${e.message}, IPs: $allowedIPs")
+            val normalizedAllowedIPs = allowedIPs.mapNotNull { ip ->
+                (ip as? String)?.trim()?.takeIf { it.isNotBlank() }
+                    ?.replace("::0/0", "::/0") // normalize IPv6 default route (e.g. Mullvad)
             }
+            if (normalizedAllowedIPs.isEmpty()) throw Exception("allowedIPs must contain at least one CIDR")
 
             // Parse DNS servers
             if (config.hasKey("dns")) {
@@ -140,18 +151,13 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 throw Exception("Invalid endpoint format: ${e.message}, Endpoint: $endpoint")
             }
 
-            // Add allowed IPs to peer
+            // Add allowed IPs to peer (routing; do not use for interface address)
             try {
-                println("Adding allowed IPs to peer: $allowedIPs")
-                allowedIPs.forEach { ip ->
-                    (ip as? String)?.let { ipString ->
-                        peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
-                    }
+                normalizedAllowedIPs.forEach { ipString ->
+                    peerBuilder.addAllowedIp(InetNetwork.parse(ipString))
                 }
-                println("Allowed IPs added to peer successfully")
             } catch (e: ParseException) {
-                println("Failed to add allowed IPs to peer: ${e.message}")
-                throw Exception("Invalid peer allowedIP format: ${e.message}, IPs: $allowedIPs")
+                throw Exception("Invalid peer allowedIP format: ${e.message}. Use ::/0 for IPv6 default, not ::0/0. IPs: $normalizedAllowedIPs")
             }
 
             println("Building WireGuard config...")

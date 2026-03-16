@@ -76,13 +76,14 @@ import WireGuardVpnModule, {
   WireGuardStatus 
 } from 'react-native-wireguard-vpn';
 
-// Configuration object
+// Configuration object (e.g. Mullvad-style). Use "address" for your tunnel IP if your provider gives one.
 const config: WireGuardConfig = {
   privateKey: 'YOUR_PRIVATE_KEY',
   publicKey: 'SERVER_PUBLIC_KEY',
   serverAddress: 'SERVER_IP',
   serverPort: 51820,
-  allowedIPs: ['0.0.0.0/0'],
+  address: '10.64.0.1/32',  // optional; interface tunnel IP (defaults to 10.64.0.1/32). Use allowedIPs only for routing.
+  allowedIPs: ['0.0.0.0/0', '::/0'],  // use ::/0 for IPv6 default (not ::0/0)
   dns: ['1.1.1.1'],
   mtu: 1450,
   presharedKey: 'OPTIONAL_PRESHARED_KEY' // Optional
@@ -134,7 +135,8 @@ interface WireGuardConfig {
   publicKey: string;
   serverAddress: string;
   serverPort: number;
-  allowedIPs: string[];
+  address?: string | string[];  // optional; tunnel IP e.g. "10.64.0.1/32" (defaults to 10.64.0.1/32)
+  allowedIPs: string[];         // routing only; use ::/0 for IPv6 default
   dns?: string[];
   mtu?: number;
   presharedKey?: string;
@@ -158,6 +160,11 @@ interface WireGuardStatus {
 
 ### "The package 'react-native-wireguard-vpn' doesn't seem to be linked"
 Follow the [Linking checklist](#linking-checklist-if-you-see-doesnt-seem-to-be-linked) above. Ensure you have run `pod install`, rebuilt the app (not just reloaded), and are not using Expo Go.
+
+### "Failed to set tunnel state: Bad address" (Android)
+This usually happens when the **interface address** is wrong. The config needs:
+- **`address`** (optional): your tunnel IP in CIDR form, e.g. `"10.64.0.1/32"`. If your provider (e.g. Mullvad) gives an "Address" in the `[Interface]` section, use that. If omitted, the library uses `10.64.0.1/32`.
+- **`allowedIPs`**: only for *routing* (what traffic goes through the VPN), e.g. `["0.0.0.0/0", "::/0"]`. Use `::/0` for IPv6 default, not `::0/0`. Do **not** use `0.0.0.0/0` or `::/0` as the interface address.
 
 ### Android
 - Ensure your app has the necessary permissions granted
