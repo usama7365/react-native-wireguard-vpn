@@ -8,6 +8,7 @@ A React Native module for implementing WireGuard VPN functionality in iOS and An
 - iOS 12.0 or later
 - Android API level 21 (Android 5.0) or later
 - CocoaPods for iOS development
+- **Not compatible with Expo Go** — use a development build or bare workflow (e.g. `npx expo run:ios` after prebuild).
 
 ## Installation
 
@@ -21,10 +22,12 @@ yarn add react-native-wireguard-vpn
 
 ### iOS Setup
 
-1. Install CocoaPods dependencies:
+1. **Install CocoaPods dependencies** (required for the native module to link):
 ```bash
 cd ios && pod install && cd ..
 ```
+   Or from project root: `npx pod-install` (if you use `pod-install`).
+   After adding the package, you must run `pod install` and **rebuild the app** (e.g. `npx expo run:ios` or build from Xcode).
 
 2. Add the following entries to your Info.plist:
 ```xml
@@ -144,7 +147,17 @@ interface WireGuardStatus {
 }
 ```
 
+## Linking checklist (if you see "doesn't seem to be linked")
+
+- Run **`pod install`** in the `ios` folder (or `npx pod-install` from the project root).
+- **Rebuild the app** after installing the package (e.g. `npx expo run:ios --device` or build from Xcode). A reload is not enough.
+- **Do not use Expo Go.** Use a development build (e.g. `npx expo run:ios` or a custom dev client). This library uses native code and is not available in Expo Go.
+- **Expo (prebuild):** After `npx expo prebuild`, run `pod install` in `ios/` and then `npx expo run:ios`.
+
 ## Troubleshooting
+
+### "The package 'react-native-wireguard-vpn' doesn't seem to be linked"
+Follow the [Linking checklist](#linking-checklist-if-you-see-doesnt-seem-to-be-linked) above. Ensure you have run `pod install`, rebuilt the app (not just reloaded), and are not using Expo Go.
 
 ### Android
 - Ensure your app has the necessary permissions granted

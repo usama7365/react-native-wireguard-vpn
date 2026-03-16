@@ -3,7 +3,7 @@
 
 @implementation WireGuardVpn
 
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE(WireGuardVpnModule)
 
 - (NSArray<NSString *> *)supportedEvents
 {
