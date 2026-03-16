@@ -187,7 +187,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT
+[MIT](https://github.com/usama7365/react-native-wireguard-vpn?tab=MIT-1-ov-file)
 
 ## Support
 
