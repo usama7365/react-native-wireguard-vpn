@@ -177,6 +177,24 @@ From v1.0.16+, the library uses a proper interface address by default and surfac
 - Check Xcode logs for detailed error messages
 - Ensure proper signing and provisioning profiles are set up
 
+### `NEConfigurationErrorDomain Code=10` — "permission denied" (real device)
+
+This comes from **iOS / Apple Developer**, not from JavaScript. Common fixes:
+
+1. **Paid Apple Developer Program** — Packet Tunnel VPN usually needs an **enrolled paid** account ($99/year). A free “Personal Team” often cannot provision Network Extension entitlements correctly on device.
+
+2. **Developer Portal — App IDs** — For **both** the main app and the **Packet Tunnel extension** target:
+   - Register each Bundle ID at [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list).
+   - Enable **Network Extensions** (and **Packet Tunnel** as needed) on **each** App ID that participates in the VPN.
+
+3. **Provisioning profiles** — After changing capabilities, **regenerate** Development/Distribution profiles, download them (or let Xcode refresh), then **clean build** (Product → Clean Build Folder) and reinstall on the device.
+
+4. **Extension Bundle ID must match the library** — The native code uses `providerBundleIdentifier` **`com.wireguardvpn.tunnel`**. Your extension target’s Bundle Identifier must be **exactly** that, **or** you must change `WireGuardVpn.m` (and rebuild the pod) to match your extension ID (e.g. `com.yourcompany.yourapp.tunnel`).
+
+5. **Capabilities in Xcode** — For WireGuard-style tunnels you need **Network Extensions → Packet Tunnel**. **Personal VPN** is a different API; you can try **removing Personal VPN** if you only use a custom Packet Tunnel, to avoid entitlement mismatches. **App Proxy** is not required for Packet Tunnel only — enable only what your provisioning profile actually includes.
+
+6. **Team & signing** — Main app and extension must use the **same team**, correct **Signing Certificate**, and profiles that include Network Extension entitlements.
+
 ## Example App
 
 Check out the example app in our [GitHub repository](https://github.com/usama7365/react-native-wireguard-vpn) for a complete implementation.
