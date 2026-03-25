@@ -1,6 +1,7 @@
 package com.wireguardvpn
 
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
@@ -15,6 +16,39 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
     private var backend: GoBackend? = null
     private var tunnel: Tunnel? = null
     private var config: Config? = null
+
+    private fun emitVpnState(tunnelState: String, status: String, isConnected: Boolean) {
+        val payload = Arguments.createMap().apply {
+            putBoolean("isConnected", isConnected)
+            putString("tunnelState", tunnelState)
+            putString("status", status)
+        }
+        reactApplicationContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("vpnStateChanged", payload)
+    }
+
+    private fun mapTunnelState(newState: Tunnel.State): Triple<String, String, Boolean> {
+        val stateName = newState?.name ?: "UNKNOWN"
+        val tunnelState = when {
+            newState == Tunnel.State.UP -> "ACTIVE"
+            newState == Tunnel.State.DOWN -> "INACTIVE"
+            stateName.contains("CONNECT", ignoreCase = true) -> "CONNECTING"
+            stateName.contains("DISCONNECT", ignoreCase = true) -> "DISCONNECTING"
+            else -> "ERROR"
+        }
+
+        val status = when (tunnelState) {
+            "ACTIVE" -> "CONNECTED"
+            "INACTIVE" -> "DISCONNECTED"
+            "CONNECTING" -> "CONNECTING"
+            "DISCONNECTING" -> "DISCONNECTING"
+            "ERROR" -> "ERROR"
+            else -> "UNKNOWN"
+        }
+
+        return Triple(tunnelState, status, newState == Tunnel.State.UP)
+    }
 
     override fun getName() = "WireGuardVpnModule"
 
@@ -172,6 +206,8 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 override fun getName(): String = "WireGuardTunnel"
                 override fun onStateChange(newState: Tunnel.State) {
                     println("WireGuard tunnel state changed to: $newState")
+                    val (tunnelState, simpleStatus, isConnected) = mapTunnelState(newState)
+                    emitVpnState(tunnelState, simpleStatus, isConnected)
                 }
             }
 
@@ -241,15 +277,39 @@ class WireGuardVpnModule(reactContext: ReactApplicationContext) : ReactContextBa
                 Tunnel.State.DOWN
             }
 
-            val status = Arguments.createMap().apply {
-                putBoolean("isConnected", state == Tunnel.State.UP)
-                putString("tunnelState", state?.name ?: "UNKNOWN")
+            val stateName = state?.name ?: "UNKNOWN"
+
+            val tunnelState = when (state) {
+                Tunnel.State.UP -> "ACTIVE"
+                Tunnel.State.DOWN -> "INACTIVE"
+                else -> {
+                    // Tunnel.State enum name mapping is best-effort.
+                    if (stateName.contains("CONNECT", ignoreCase = true)) "CONNECTING"
+                    else if (stateName.contains("DISCONNECT", ignoreCase = true)) "DISCONNECTING"
+                    else "ERROR"
+                }
             }
-            promise.resolve(status)
+
+            val simpleStatus = when (tunnelState) {
+                "ACTIVE" -> "CONNECTED"
+                "INACTIVE" -> "DISCONNECTED"
+                "CONNECTING" -> "CONNECTING"
+                "DISCONNECTING" -> "DISCONNECTING"
+                "ERROR" -> "ERROR"
+                else -> "UNKNOWN"
+            }
+
+            val out = Arguments.createMap().apply {
+                putBoolean("isConnected", state == Tunnel.State.UP)
+                putString("tunnelState", tunnelState)
+                putString("status", simpleStatus)
+            }
+            promise.resolve(out)
         } catch (e: Exception) {
             val status = Arguments.createMap().apply {
                 putBoolean("isConnected", false)
                 putString("tunnelState", "ERROR")
+                putString("status", "ERROR")
                 putString("error", e.message)
             }
             promise.resolve(status)

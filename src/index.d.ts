@@ -14,7 +14,20 @@ declare module 'react-native-wireguard-vpn' {
 
   export interface WireGuardStatus {
     isConnected: boolean;
-    tunnelState: 'ACTIVE' | 'INACTIVE' | 'ERROR';
+    tunnelState:
+      | 'ACTIVE'
+      | 'INACTIVE'
+      | 'CONNECTING'
+      | 'DISCONNECTING'
+      | 'ERROR'
+      | 'UNKNOWN';
+    status:
+      | 'CONNECTED'
+      | 'DISCONNECTED'
+      | 'CONNECTING'
+      | 'DISCONNECTING'
+      | 'ERROR'
+      | 'UNKNOWN';
     error?: string;
   }
 

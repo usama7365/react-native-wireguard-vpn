@@ -12,7 +12,14 @@ export interface WireGuardConfig {
 }
 export interface WireGuardStatus {
     isConnected: boolean;
-    tunnelState: 'ACTIVE' | 'INACTIVE' | 'ERROR';
+    tunnelState: 'ACTIVE' | 'INACTIVE' | 'CONNECTING' | 'DISCONNECTING' | 'ERROR' | 'UNKNOWN';
+    /**
+     * Connection status as a simpler string for app UI logic.
+     * - CONNECTED when tunnel is up
+     * - DISCONNECTED when tunnel is down
+     * - CONNECTING/DISCONNECTING/ERROR/UNKNOWN for intermediate states
+     */
+    status: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING' | 'DISCONNECTING' | 'ERROR' | 'UNKNOWN';
     error?: string;
 }
 declare const _default: {

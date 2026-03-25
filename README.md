@@ -155,6 +155,31 @@ Gets the current VPN connection status.
 #### `isSupported(): Promise<boolean>`
 Checks if WireGuard VPN is supported on the device.
 
+### Events
+
+`vpnStateChanged` (iOS + Android)
+
+This event is emitted when the VPN/tunnel state changes.
+
+Payload:
+- `isConnected: boolean`
+- `tunnelState: 'ACTIVE' | 'INACTIVE' | 'CONNECTING' | 'DISCONNECTING' | 'ERROR' | 'UNKNOWN'`
+- `status: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING' | 'DISCONNECTING' | 'ERROR' | 'UNKNOWN'`
+
+Example:
+
+```ts
+import { NativeEventEmitter, NativeModules } from 'react-native';
+
+const emitter = new NativeEventEmitter(NativeModules.WireGuardVpnModule);
+
+const sub = emitter.addListener('vpnStateChanged', (payload) => {
+  console.log('vpnStateChanged', payload);
+});
+
+// sub.remove();
+```
+
 ### Types
 
 ```typescript
@@ -172,7 +197,20 @@ interface WireGuardConfig {
 
 interface WireGuardStatus {
   isConnected: boolean;
-  tunnelState: 'ACTIVE' | 'INACTIVE' | 'ERROR';
+  tunnelState:
+    | 'ACTIVE'
+    | 'INACTIVE'
+    | 'CONNECTING'
+    | 'DISCONNECTING'
+    | 'ERROR'
+    | 'UNKNOWN';
+  status:
+    | 'CONNECTED'
+    | 'DISCONNECTED'
+    | 'CONNECTING'
+    | 'DISCONNECTING'
+    | 'ERROR'
+    | 'UNKNOWN';
   error?: string;
 }
 ```
