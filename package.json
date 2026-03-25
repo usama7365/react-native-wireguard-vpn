@@ -1,15 +1,18 @@
 {
   "name": "react-native-wireguard-vpn",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "React Native WireGuard VPN package for iOS and Android",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
     "src",
     "lib",
-    "android",
+    "android/build.gradle",
+    "android/src",
     "ios",
-    "react-native-wireguard-vpn.podspec"
+    "react-native-wireguard-vpn.podspec",
+    "app.plugin.js",
+    "plugin/"
   ],
   "scripts": {
     "build": "tsc",
@@ -27,7 +30,8 @@
   "license": "MIT",
   "peerDependencies": {
     "react": ">=18.2.0",
-    "react-native": ">=0.72.0"
+    "react-native": ">=0.72.0",
+    "expo": ">=47.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

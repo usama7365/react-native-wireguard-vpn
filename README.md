@@ -20,6 +20,35 @@ npm install react-native-wireguard-vpn --save
 yarn add react-native-wireguard-vpn
 ```
 
+### Expo Config Plugin (iOS + Android)
+
+If you use Expo (prebuild / dev builds), you can enable the library’s config plugin to automatically add the required **Network Extension** iOS entitlements + Info.plist keys.
+
+1. Add the plugin to your `app.json` / `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": ["react-native-wireguard-vpn"]
+  }
+}
+```
+
+2. Re-run prebuild and rebuild your iOS app (and Android dev build if needed):
+
+```bash
+npx expo prebuild -p ios --clean
+npx expo run:ios --device
+```
+
+Notes:
+- This plugin updates iOS **Info.plist** + **entitlements**.
+- It also ensures required Android **VPN permissions** are present in `AndroidManifest.xml`.
+- The **Packet Tunnel extension target** still needs to be created in Xcode manually (File → New Target → Network Extension → Packet Tunnel Provider).
+- The library’s native iOS code uses the tunnel provider bundle identifier **`com.wireguardvpn.tunnel`** by default. Make sure your Packet Tunnel extension uses the same Bundle Identifier (or update the native code and rebuild).
+- The Expo config plugin does not run in **Expo Go**. Use a development build / `prebuild`.
+- Test on a real device (VPN / Network Extension usually does not work in the simulator).
+
 ### iOS Setup
 
 1. **Install CocoaPods dependencies** (required for the native module to link):
@@ -209,4 +238,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-For bugs and feature requests, please [create an issue](https://github.com/usama7365/react-native-wireguard-vpn/issues) on our GitHub repository. 
+For bugs and feature requests, please [create an issue](https://github.com/usama7365/react-native-wireguard-vpn/issues) on our GitHub repository.

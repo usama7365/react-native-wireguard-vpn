@@ -1,0 +1,9 @@
+# Do not ship local Gradle cache / build artifacts
+android/.gradle
+android/build
+android/**/build
+node_modules
+.DS_Store
+*.log
+.git
+.gitignore
